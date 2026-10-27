@@ -116,44 +116,4 @@ button:disabled { opacity: .5; cursor: not-allowed; }
   * { animation: none !important; }
 }
 
-
-/* Cartón de bingo */
-.hint { margin: 0 0 8px; }
-.card {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap: 4px;
-  padding: 8px;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 6px 18px #0006;
-}
-.ccell {
-  aspect-ratio: 1; padding: 0; border-radius: 8px;
-  font-size: 1.3rem; font-weight: 900;
-  background: #fff; color: var(--c, #333);
-  border: 3px solid var(--c, #333);
-  box-shadow: none;
-  position: relative;
-}
-.ccell.blank { background: #e9e6f5; border-color: #e9e6f5; opacity: 1; cursor: default; }
-.ccell.mark { background: var(--c); color: #fff; }
-.ccell.mark::after {
-  content: ""; position: absolute; left: 8%; right: 8%; top: 50%;
-  height: 4px; border-radius: 2px; background: #fff; transform: rotate(-35deg);
-  box-shadow: 0 0 3px #0008;
-}
-.ccell.nope { animation: shake .35s; }
-@keyframes shake {
-  25% { transform: translateX(-5px); } 75% { transform: translateX(5px); }
-}
-.win {
-  text-align: center; font-size: 2.2rem; font-weight: 900; min-height: 0;
-  color: var(--yellow); text-shadow: 3px 3px 0 var(--purple);
-}
-.win.show { animation: in .5s cubic-bezier(.2, 1.6, .4, 1); margin: 10px 0; }
-#newcard { background: var(--green); color: #1a1a1a; }
-
-@media (max-width: 500px) {
-  .ccell { font-size: .85rem; border-width: 2px; }
-}
+.voices { font-size: .9rem; background: #0004; border-radius: 12px; padding: 6px 12px; display: inline-block; }

@@ -19,19 +19,17 @@
   var autoBtn = document.getElementById("auto");
   var resetBtn = document.getElementById("reset");
   var voiceBtn = document.getElementById("voice");
-  var cardEl = document.getElementById("card");
-  var newCardBtn = document.getElementById("newcard");
-  var winEl = document.getElementById("win");
+  var voicesInfo = document.getElementById("voices");
 
   function colorOf(n) { return COLORS[Math.floor((n - 1) / 10)]; }
 
   // ---- Voz masculina en 4 idiomas: español, inglés, francés, alemán ----
   var voiceOn = true;
   var LANGS = [
-    { code: "es", tag: "es-ES" },
-    { code: "en", tag: "en-US" },
-    { code: "fr", tag: "fr-FR" },
-    { code: "de", tag: "de-DE" }
+    { code: "es", name: "Español" },
+    { code: "en", name: "English" },
+    { code: "fr", name: "Français" },
+    { code: "de", name: "Deutsch" }
   ];
   var MALE = new RegExp([
     "pablo", "jorge", "raul", "raúl", "enrique", "diego", "carlos", "miguel", "juan", "andres", "andrés",
@@ -41,17 +39,23 @@
   var voices = {}; // código de idioma -> voz elegida
 
   function pickVoices() {
-    if (!("speechSynthesis" in window)) return;
+    if (!("speechSynthesis" in window)) {
+      voicesInfo.textContent = "Este navegador no tiene voz.";
+      return;
+    }
     var all = window.speechSynthesis.getVoices();
+    var parts = [];
     LANGS.forEach(function (L) {
-      var list = all.filter(function (v) { return v.lang.toLowerCase().indexOf(L.code) === 0; });
+      var list = all.filter(function (v) { return v.lang.toLowerCase().replace("_", "-").indexOf(L.code) === 0; });
       voices[L.code] = list.filter(function (v) { return MALE.test(v.name); })[0] || list[0] || null;
+      parts.push((voices[L.code] ? "✅ " : "❌ ") + L.name);
     });
+    voicesInfo.textContent = "Voces en este equipo: " + parts.join("  ");
   }
   if ("speechSynthesis" in window) {
-    pickVoices();
     window.speechSynthesis.onvoiceschanged = pickVoices;
   }
+  pickVoices();
 
   // Dice el número: primero español, luego inglés, francés y alemán.
   // Si el equipo no tiene voz para un idioma, se salta ese idioma.
@@ -73,119 +77,6 @@
   function isSpeaking() {
     return "speechSynthesis" in window && window.speechSynthesis.speaking;
   }
-
-  // ---- Cartón de bingo (3 filas x 9 columnas, 15 números) ----
-  var card = null;      // card[fila][col] = número o 0
-  var marked = {};      // número -> true
-  var lineDone = {};    // fila -> true
-
-  // Cartón válido: 5 números por fila, 1 a 3 por columna.
-  // Columna 0 = 1-9, columna 1 = 10-19, ..., columna 8 = 80-90.
-  function generateCard() {
-    while (true) {
-      var counts = [];
-      var c, r, total = 0;
-      for (c = 0; c < 9; c++) { counts.push(1); total++; }
-      while (total < 15) {
-        c = Math.floor(Math.random() * 9);
-        if (counts[c] < 3) { counts[c]++; total++; }
-      }
-      var rows = [[], [], []];
-      var grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]];
-      var rowCount = [0, 0, 0];
-      var ok = true;
-      for (c = 0; c < 9 && ok; c++) {
-        // elegir en qué filas va cada número de esta columna
-        var rowIdx = [0, 1, 2].sort(function () { return Math.random() - 0.5; }).slice(0, counts[c]).sort();
-        // elegir los números de la columna, de menor a mayor
-        var lo = c === 0 ? 1 : c * 10;
-        var hi = c === 8 ? 90 : c * 10 + 9;
-        var pool = [];
-        for (var x = lo; x <= hi; x++) pool.push(x);
-        pool.sort(function () { return Math.random() - 0.5; });
-        var nums = pool.slice(0, counts[c]).sort(function (a, b) { return a - b; });
-        for (var k = 0; k < rowIdx.length; k++) {
-          grid[rowIdx[k]][c] = nums[k];
-          rowCount[rowIdx[k]]++;
-        }
-      }
-      for (r = 0; r < 3; r++) if (rowCount[r] !== 5) ok = false;
-      if (ok) return grid;
-    }
-  }
-
-  function renderCard() {
-    cardEl.innerHTML = "";
-    for (var r = 0; r < 3; r++) {
-      for (var c = 0; c < 9; c++) {
-        var n = card[r][c];
-        var cell = document.createElement("button");
-        cell.type = "button";
-        cell.className = "ccell" + (n ? "" : " blank");
-        if (n) {
-          cell.textContent = n;
-          cell.dataset.n = n;
-          cell.style.setProperty("--c", colorOf(n));
-          if (marked[n]) cell.classList.add("mark");
-        } else {
-          cell.disabled = true;
-          cell.setAttribute("aria-hidden", "true");
-        }
-        cardEl.appendChild(cell);
-      }
-    }
-  }
-
-  function newCard() {
-    card = generateCard();
-    marked = {};
-    lineDone = {};
-    winEl.textContent = "";
-    winEl.classList.remove("show");
-    renderCard();
-  }
-
-  function announce(text) {
-    winEl.textContent = text;
-    winEl.classList.remove("show");
-    void winEl.offsetWidth;
-    winEl.classList.add("show");
-  }
-
-  function checkWin() {
-    var total = 0;
-    for (var r = 0; r < 3; r++) {
-      var rowMarked = 0;
-      for (var c = 0; c < 9; c++) {
-        var n = card[r][c];
-        if (n && marked[n]) { rowMarked++; total++; }
-      }
-      if (rowMarked === 5 && !lineDone[r]) {
-        lineDone[r] = true;
-        if (total < 15) announce("🎉 ¡LÍNEA!");
-      }
-    }
-    if (total === 15) {
-      announce("🏆 ¡BINGO!");
-      setAuto(false);
-    }
-  }
-
-  cardEl.addEventListener("click", function (e) {
-    var cell = e.target.closest(".ccell");
-    if (!cell || cell.classList.contains("blank")) return;
-    var n = Number(cell.dataset.n);
-    if (drawn.indexOf(n) === -1) {
-      cell.classList.remove("nope");
-      void cell.offsetWidth;
-      cell.classList.add("nope");
-      statusEl.textContent = "El " + n + " todavía no ha salido";
-      return;
-    }
-    if (marked[n]) { delete marked[n]; cell.classList.remove("mark"); }
-    else { marked[n] = true; cell.classList.add("mark"); }
-    checkWin();
-  });
 
   // ---- Tablero y juego ----
   function buildBoard() {
@@ -241,7 +132,6 @@
     drawBtn.disabled = false;
     autoBtn.disabled = false;
     buildBoard();
-    newCard();
   }
 
   function draw() {
@@ -285,7 +175,6 @@
   drawBtn.addEventListener("click", draw);
   autoBtn.addEventListener("click", function () { setAuto(!running); });
   resetBtn.addEventListener("click", reset);
-  newCardBtn.addEventListener("click", newCard);
   voiceBtn.addEventListener("click", function () {
     voiceOn = !voiceOn;
     voiceBtn.textContent = voiceOn ? "🔊 Voz: sí" : "🔇 Voz: no";
