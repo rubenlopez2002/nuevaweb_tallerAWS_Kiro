@@ -117,3 +117,5 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 }
 
 .voices { font-size: .9rem; background: #0004; border-radius: 12px; padding: 6px 12px; display: inline-block; }
+
+.version { text-align: center; opacity: .7; font-size: .8rem; padding: 16px; }
