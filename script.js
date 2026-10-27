@@ -17,8 +17,36 @@
   var drawBtn = document.getElementById("draw");
   var autoBtn = document.getElementById("auto");
   var resetBtn = document.getElementById("reset");
+  var voiceBtn = document.getElementById("voice");
 
   function colorOf(n) { return COLORS[Math.floor((n - 1) / 10)]; }
+
+  // ---- Voz masculina (Web Speech API del navegador) ----
+  var voiceOn = true;
+  var voice = null;
+  var MALE = /pablo|jorge|raul|raúl|enrique|diego|carlos|miguel|alvaro|álvaro|juan|andres|andrés|male|hombre/i;
+
+  function pickVoice() {
+    if (!("speechSynthesis" in window)) return;
+    var all = window.speechSynthesis.getVoices();
+    var es = all.filter(function (v) { return /^es/i.test(v.lang); });
+    voice = es.filter(function (v) { return MALE.test(v.name); })[0] || es[0] || null;
+  }
+  if ("speechSynthesis" in window) {
+    pickVoice();
+    window.speechSynthesis.onvoiceschanged = pickVoice;
+  }
+
+  function speak(n) {
+    if (!voiceOn || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(String(n));
+    u.lang = "es-ES";
+    if (voice) { u.voice = voice; u.lang = voice.lang; }
+    u.pitch = 0.5;  // tono grave = voz de hombre
+    u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  }
 
   function buildBoard() {
     board.innerHTML = "";
@@ -92,6 +120,7 @@
 
     countEl.textContent = drawn.length;
     statusEl.textContent = "¡Ha salido el " + n + "!";
+    speak(n);
 
     if (remaining.length === 0) {
       setAuto(false);
@@ -104,5 +133,10 @@
   drawBtn.addEventListener("click", draw);
   autoBtn.addEventListener("click", function () { setAuto(!timer); });
   resetBtn.addEventListener("click", reset);
+  voiceBtn.addEventListener("click", function () {
+    voiceOn = !voiceOn;
+    voiceBtn.textContent = voiceOn ? "🔊 Voz: sí" : "🔇 Voz: no";
+    if (!voiceOn && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  });
   reset();
 })();

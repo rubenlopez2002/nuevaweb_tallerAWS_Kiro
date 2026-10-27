@@ -67,6 +67,7 @@ button:active { transform: translateY(3px); box-shadow: 0 1px 0 #0005; }
 #auto.running { background: var(--orange); color: #fff; }
 #draw { background: var(--cyan); color: #1a1a1a; }
 #reset { background: var(--pink); }
+#voice { background: var(--blue, #3d6bff); }
 button:disabled { opacity: .5; cursor: not-allowed; }
 
 .count { font-weight: bold; }
