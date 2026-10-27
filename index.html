@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bingo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>🎱 Bingo</h1>
+
+    <section class="stage">
+      <div id="ball" class="ball" aria-live="polite">?</div>
+      <p id="status">Pulsa el botón para sacar un número</p>
+      <div class="buttons">
+        <button id="draw">Sacar número</button>
+        <button id="reset" class="secondary">Nuevo juego</button>
+      </div>
+      <p class="count">Salieron <span id="count">0</span> de 90</p>
+    </section>
+
+    <section>
+      <h2>Tablero</h2>
+      <div id="board" class="board"></div>
+    </section>
+
+    <section>
+      <h2>Números que ya salieron</h2>
+      <div id="history" class="history"></div>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
