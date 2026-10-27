@@ -15,7 +15,6 @@ Una nueva web (taller AWS_Kiro): un juego de **Bingo** hecho con HTML, CSS y Jav
 - Colores vivos: cada decena (1-10, 11-20...) tiene su color.
 - Voz de hombre que dice cada número en 4 idiomas, en este orden: español, inglés, francés y alemán.
 - Botón "Voz" para apagar o encender la voz.
-- Una línea muestra qué idiomas tiene tu equipo (✅ o ❌).
 - Botón "Nuevo juego" para empezar de cero.
 
 ## Archivos
@@ -24,10 +23,12 @@ Una nueva web (taller AWS_Kiro): un juego de **Bingo** hecho con HTML, CSS y Jav
 |---|---|
 | `index.html` | La página |
 | `style.css` | Colores y animaciones |
-| `script.js` | El juego y la voz |
+| `script.js` | El juego y la reproducción de la voz |
+| `audio/` | Los números del 1 al 90 en audio: `es`, `en`, `fr` y `de` (360 archivos) |
 | `Bingo.exe` | Programa para Windows: abre el juego en tu navegador, sin internet |
 | `launcher/Launcher.cs` | Código del programa `Bingo.exe` |
 | `build-exe.bat` | Vuelve a crear `Bingo.exe` si cambias la web |
+| `tools/` | Programas para volver a crear los audios (solo Windows) |
 
 ## Cómo usarlo
 
@@ -36,13 +37,19 @@ Una nueva web (taller AWS_Kiro): un juego de **Bingo** hecho con HTML, CSS y Jav
 
 ## La voz
 
-La voz viene de tu navegador y de Windows. Si falta un idioma, el juego lo salta.
+Los audios están grabados con las voces de hombre de Windows: Pablo (español), David (inglés), Paul (francés) y Stefan (alemán). Por eso suenan igual en cualquier navegador y no hace falta instalar voces.
 
-Para añadir voces en Windows: Configuración → Hora e idioma → Voz → Agregar voces. Después cierra el navegador y ábrelo otra vez.
+Para crear los audios otra vez (necesita esas 4 voces instaladas en Windows):
+
+```
+powershell -ExecutionPolicy Bypass -File tools\gen_audio.ps1 -OutDir audio
+powershell -ExecutionPolicy Bypass -File tools\trim_audio.ps1 -Dir audio
+```
 
 ## Versiones
 
 Rama actual: `v0.1`. GitHub Pages publica desde esa rama.
 
+- **v0.1.2** – La voz usa audios grabados (carpeta `audio/`). Ya se oyen los 4 idiomas en cualquier navegador.
 - **v0.1.1** – Etiqueta de versión y actualización de caché.
-- **v0.1** – Bingo con animación, modo automático, colores, voz en 4 idiomas y `Bingo.exe`.
+- **v0.1** – Bingo con animación, modo automático, colores, voz y `Bingo.exe`.

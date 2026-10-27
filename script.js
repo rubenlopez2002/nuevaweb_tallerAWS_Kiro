@@ -1,6 +1,6 @@
 (function () {
   var TOTAL = 90;
-  var INTERVAL_MS = 4000; // pausa mínima entre números (además de esperar a que acabe la voz)
+  var INTERVAL_MS = 2000; // pausa mínima entre números (además de esperar a que acabe la voz)
   // Un color vivo por cada decena (1-10, 11-20, ...)
   var COLORS = ["#ff2d95", "#ff7a00", "#e6b800", "#2bbf00", "#00a8c4",
                 "#3d6bff", "#7b2ff7", "#d100d1", "#e8213a"];
@@ -19,64 +19,45 @@
   var autoBtn = document.getElementById("auto");
   var resetBtn = document.getElementById("reset");
   var voiceBtn = document.getElementById("voice");
-  var voicesInfo = document.getElementById("voices");
 
   function colorOf(n) { return COLORS[Math.floor((n - 1) / 10)]; }
 
-  // ---- Voz masculina en 4 idiomas: español, inglés, francés, alemán ----
+  // ---- Voz de hombre en 4 idiomas: español, inglés, francés, alemán ----
+  // Son audios grabados (carpeta audio/), así suenan igual en cualquier
+  // navegador y en cualquier equipo, sin instalar voces.
   var voiceOn = true;
-  var LANGS = [
-    { code: "es", name: "Español" },
-    { code: "en", name: "English" },
-    { code: "fr", name: "Français" },
-    { code: "de", name: "Deutsch" }
-  ];
-  var MALE = new RegExp([
-    "pablo", "jorge", "raul", "raúl", "enrique", "diego", "carlos", "miguel", "juan", "andres", "andrés",
-    "david", "mark", "james", "george", "guy", "daniel", "alex", "ryan", "thomas", "paul", "henri",
-    "claude", "jean", "stefan", "hans", "markus", "conrad", "michael", "male", "hombre", "homme", "mann"
-  ].join("|"), "i");
-  var voices = {}; // código de idioma -> voz elegida
+  var ORDER = ["es", "en", "fr", "de"];
+  var playId = 0;       // sube cada vez que se corta o empieza una locución
+  var speaking = false;
+  var current = null;
 
-  function pickVoices() {
-    if (!("speechSynthesis" in window)) {
-      voicesInfo.textContent = "Este navegador no tiene voz.";
-      return;
-    }
-    var all = window.speechSynthesis.getVoices();
-    var parts = [];
-    LANGS.forEach(function (L) {
-      var list = all.filter(function (v) { return v.lang.toLowerCase().replace("_", "-").indexOf(L.code) === 0; });
-      voices[L.code] = list.filter(function (v) { return MALE.test(v.name); })[0] || list[0] || null;
-      parts.push((voices[L.code] ? "✅ " : "❌ ") + L.name);
-    });
-    voicesInfo.textContent = "Voces en este equipo: " + parts.join("  ");
+  function stopVoice() {
+    playId++;
+    speaking = false;
+    if (current) { try { current.pause(); } catch (e) {} current = null; }
   }
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.onvoiceschanged = pickVoices;
-  }
-  pickVoices();
 
   // Dice el número: primero español, luego inglés, francés y alemán.
-  // Si el equipo no tiene voz para un idioma, se salta ese idioma.
   function speak(n) {
-    if (!voiceOn || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    LANGS.forEach(function (L) {
-      var v = voices[L.code];
-      if (!v) return;
-      var u = new SpeechSynthesisUtterance(String(n));
-      u.voice = v;
-      u.lang = v.lang;
-      u.pitch = 0.5;  // tono grave = voz de hombre
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
-    });
+    stopVoice();
+    if (!voiceOn) return;
+    var id = playId;
+    var i = 0;
+    speaking = true;
+    function next() {
+      if (id !== playId) return;           // llegó otra locución o se cortó
+      if (i >= ORDER.length) { speaking = false; current = null; return; }
+      var a = new Audio("audio/" + ORDER[i++] + "/" + n + ".wav");
+      current = a;
+      a.onended = next;
+      a.onerror = next;                    // si falta un audio, sigue con el siguiente
+      var p = a.play();
+      if (p && p.catch) p.catch(next);
+    }
+    next();
   }
 
-  function isSpeaking() {
-    return "speechSynthesis" in window && window.speechSynthesis.speaking;
-  }
+  function isSpeaking() { return speaking; }
 
   // ---- Tablero y juego ----
   function buildBoard() {
@@ -119,7 +100,7 @@
 
   function reset() {
     setAuto(false);
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    stopVoice();
     remaining = [];
     for (var i = 1; i <= TOTAL; i++) remaining.push(i);
     drawn = [];
@@ -178,7 +159,7 @@
   voiceBtn.addEventListener("click", function () {
     voiceOn = !voiceOn;
     voiceBtn.textContent = voiceOn ? "🔊 Voz: sí" : "🔇 Voz: no";
-    if (!voiceOn && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (!voiceOn) stopVoice();
   });
   reset();
 })();
