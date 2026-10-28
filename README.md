@@ -50,6 +50,7 @@ powershell -ExecutionPolicy Bypass -File tools\trim_audio.ps1 -Dir audio
 
 Rama actual: `v0.1`. GitHub Pages publica desde esa rama.
 
+- **v0.1.4** – Pausa de 30 segundos entre números y bombo que gira (rápido unos 2,5 s antes de salir cada bola). Se cambia en `INTERVAL_MS` y `SPIN_MS` de `script.js`.
 - **v0.1.3** – Pausa de 12 segundos entre número y número (cuenta desde que acaba la voz). Se cambia en `INTERVAL_MS` de `script.js`.
 - **v0.1.2** – La voz usa audios grabados (carpeta `audio/`). Ya se oyen los 4 idiomas en cualquier navegador.
 - **v0.1.1** – Etiqueta de versión y actualización de caché.

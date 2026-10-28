@@ -1,6 +1,7 @@
 (function () {
   var TOTAL = 90;
-  var INTERVAL_MS = 12000; // pausa entre números (12 s), cuenta desde que acaba la voz
+  var INTERVAL_MS = 30000; // pausa entre números (30 s), cuenta desde que acaba la voz
+  var SPIN_MS = 2500;      // tiempo que gira rápido el bombo antes de salir la bola
   // Un color vivo por cada decena (1-10, 11-20, ...)
   var COLORS = ["#ff2d95", "#ff7a00", "#e6b800", "#2bbf00", "#00a8c4",
                 "#3d6bff", "#7b2ff7", "#d100d1", "#e8213a"];
@@ -9,7 +10,11 @@
   var drawn = [];
   var timer = null;
   var running = false;
+  var spinning = false;   // el bombo está girando antes de sacar la bola
+  var spinTimer = null;
 
+  var drum = document.getElementById("drum");
+  var cage = document.getElementById("cage");
   var ball = document.getElementById("ball");
   var statusEl = document.getElementById("status");
   var board = document.getElementById("board");
@@ -57,7 +62,23 @@
     next();
   }
 
-  function isSpeaking() { return speaking; }
+  function isSpeaking() { return speaking || spinning; }
+
+  // ---- Bombo: bolitas de colores dentro de una jaula que gira ----
+  function buildDrum() {
+    var nums = [7, 18, 23, 34, 41, 52, 66, 75, 88, 12, 59, 90];
+    for (var k = 0; k < nums.length; k++) {
+      var ang = (k / nums.length) * 2 * Math.PI + (k % 2) * 0.4;
+      var rad = k % 2 ? 26 : 12;               // en % del radio
+      var m = document.createElement("span");
+      m.className = "mini";
+      m.textContent = nums[k];
+      m.style.setProperty("--c", colorOf(nums[k]));
+      m.style.left = "calc(" + (50 + Math.cos(ang) * rad * 1.5) + "% - 15px)";
+      m.style.top = "calc(" + (50 + Math.sin(ang) * rad * 1.5) + "% - 15px)";
+      cage.appendChild(m);
+    }
+  }
 
   // ---- Tablero y juego ----
   function buildBoard() {
@@ -106,6 +127,9 @@
   function reset() {
     setAuto(false);
     stopVoice();
+    clearTimeout(spinTimer);
+    spinning = false;
+    drum.classList.remove("fast");
     remaining = [];
     for (var i = 1; i <= TOTAL; i++) remaining.push(i);
     drawn = [];
@@ -120,7 +144,21 @@
     buildBoard();
   }
 
+  // Primero gira el bombo unos segundos; después sale la bola.
   function draw() {
+    if (remaining.length === 0 || spinning) return;
+    spinning = true;
+    stopVoice();
+    statusEl.textContent = "🎡 Girando el bombo…";
+    drum.classList.add("fast");
+    spinTimer = setTimeout(function () {
+      drum.classList.remove("fast");
+      spinning = false;
+      reveal();
+    }, SPIN_MS);
+  }
+
+  function reveal() {
     if (remaining.length === 0) return;
     var idx = Math.floor(Math.random() * remaining.length);
     var n = remaining.splice(idx, 1)[0];
@@ -166,5 +204,6 @@
     voiceBtn.textContent = voiceOn ? "🔊 Voz: sí" : "🔇 Voz: no";
     if (!voiceOn) stopVoice();
   });
+  buildDrum();
   reset();
 })();
