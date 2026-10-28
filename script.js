@@ -1,6 +1,6 @@
 (function () {
   var TOTAL = 90;
-  var INTERVAL_MS = 2000; // pausa mínima entre números (además de esperar a que acabe la voz)
+  var INTERVAL_MS = 12000; // pausa entre números (12 s), cuenta desde que acaba la voz
   // Un color vivo por cada decena (1-10, 11-20, ...)
   var COLORS = ["#ff2d95", "#ff7a00", "#e6b800", "#2bbf00", "#00a8c4",
                 "#3d6bff", "#7b2ff7", "#d100d1", "#e8213a"];
@@ -74,9 +74,14 @@
 
   // Bucle automático: espera a que acabe la voz y luego saca el siguiente.
   function schedule() {
+    // Si la voz aún habla, espera un poco y vuelve a mirar.
+    if (isSpeaking()) {
+      timer = setTimeout(function () { if (running) schedule(); }, 300);
+      return;
+    }
+    // La voz ya acabó: pausa larga y luego el siguiente número.
     timer = setTimeout(function () {
       if (!running) return;
-      if (isSpeaking()) { schedule(); return; }
       draw();
       if (running) schedule();
     }, INTERVAL_MS);
