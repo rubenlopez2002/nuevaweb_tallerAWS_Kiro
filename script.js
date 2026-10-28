@@ -1,6 +1,6 @@
 (function () {
   var TOTAL = 90;
-  var INTERVAL_MS = 30000; // pausa entre números (30 s), cuenta desde que acaba la voz
+  var INTERVAL_MS = 20000; // pausa entre números (20 s), cuenta desde que acaba la voz
   var SPIN_MS = 2500;      // tiempo que gira rápido el bombo antes de salir la bola
   // Un color vivo por cada decena (1-10, 11-20, ...)
   var COLORS = ["#ff2d95", "#ff7a00", "#e6b800", "#2bbf00", "#00a8c4",
